@@ -1,8 +1,14 @@
+import sys
+from typing import Optional
+
 import cv2 as cv
 import requests
 import os
 import numpy as np
 
+DEFAULT_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/main/resources/shutterstock130285649--250.jpg"
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# image_url = "https://csuglobal.instructure.com/courses/109078/files/8037617?wrap=1"
 
 class ImageProcessor:
 
@@ -59,14 +65,28 @@ class ImageProcessor:
         print(f"Image saved to {file_path}")
         return self
 
-
-if __name__ == "__main__":
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    new_image_write = os.path.join(current_dir, "shutterstock93075775--250-wt.jpg")
-
-    image_url = "https://raw.githubusercontent.com/jodth07/computer_vision/main/resources/shutterstock130285649--250.jpg"
-    # image_url = "https://csuglobal.instructure.com/courses/109078/files/8037617?wrap=1"
+def main(input_file_path: Optional[str] = None):
     image_processor = ImageProcessor()
-    loaded_image = image_processor.load_image_from_url(image_url)
+    if input_file_path:
+        loaded_image = image_processor.load_image_from_file(input_file_path)
+        path_split = input_file_path.split(".")
+        new_image_write = ".".join(path_split[:-1]) + "_copy." + path_split[-1]
+    else:
+        loaded_image = image_processor.load_image_from_url(DEFAULT_IMAGE_URL)
+        new_image_write = os.path.join(CURRENT_DIR, "shutterstock93075775--250_copy.jpg")
+
     loaded_image.show_image()
     loaded_image.save_image_to_file(new_image_write)
+
+
+def get_arguments() -> Optional[str]:
+    args = sys.argv[1:]
+    if len(args) > 0:
+        return args[0]
+    else:
+        print("No Argument passed in, downloading default image from URL")
+        return None
+
+if __name__ == "__main__":
+    input_file_path = get_arguments()
+    main(input_file_path)
