@@ -1,7 +1,11 @@
 import cv2 as cv
 import os
 
+import numpy as np
+import requests
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/main/resources/shutterstock-dog--250.jpg"
 
 
 if __name__ == '__main__':
@@ -13,9 +17,11 @@ if __name__ == '__main__':
     exchange the reds with the greens? 
     swapping out the blue channel with the red channel (GRB).
     """
-    image_path = os.path.join(CURRENT_DIR, '../resources/shutterstock-cat--250.jpg')
-    
-    image_colored = cv.imread(image_path, 1)
+    response = requests.get(DEFAULT_IMAGE_URL)
+    image_array = np.asarray(bytearray(response.content), dtype=np.uint8)
+
+    image_colored = cv.imdecode(image_array, cv.IMREAD_COLOR)
+
     cv.namedWindow('image_colored', cv.WINDOW_AUTOSIZE)
     cv.imshow('image_colored', image_colored)
     print(f"image_colored shape {image_colored.shape}")
@@ -58,4 +64,3 @@ if __name__ == '__main__':
     cv.waitKey(0)
 
     cv.destroyAllWindows()
-
