@@ -6,7 +6,7 @@ import requests
 import os
 import numpy as np
 
-DEFAULT_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/main/resources/shutterstock130285649--250.jpg"
+DEFAULT_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop/resources/shutterstock130285649--250.jpg"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # image_url = "https://csuglobal.instructure.com/courses/109078/files/8037617?wrap=1"
 
@@ -67,13 +67,17 @@ class ImageProcessor:
 
 def main(input_file_path: Optional[str] = None):
     image_processor = ImageProcessor()
-    if input_file_path:
-        loaded_image = image_processor.load_image_from_file(input_file_path)
-        path_split = input_file_path.split(".")
-        new_image_write = ".".join(path_split[:-1]) + "_copy." + path_split[-1]
-    else:
-        loaded_image = image_processor.load_image_from_url(DEFAULT_IMAGE_URL)
-        new_image_write = os.path.join(CURRENT_DIR, "shutterstock93075775--250_copy.jpg")
+    """
+    import the following from ufl.
+    display the image.
+    rite a copy of the image to any directory
+    """
+    url_path = input_file_path or DEFAULT_IMAGE_URL
+    loaded_image = image_processor.load_image_from_url(url_path)
+
+    file_name = url_path.split("/")[-1]
+    path_split = file_name.split(".")
+    new_image_write = ".".join(path_split[:-1]) + "_copy." + path_split[-1]
 
     loaded_image.show_image()
     loaded_image.save_image_to_file(new_image_write)
@@ -88,5 +92,5 @@ def get_arguments() -> Optional[str]:
         return None
 
 if __name__ == "__main__":
-    input_file_path = get_arguments()
-    main(input_file_path)
+    file_url = get_arguments()
+    main(file_url)

@@ -38,6 +38,7 @@ if __name__ == '__main__':
         a green circle around your face.  
     tag the image with the text “this is me”.
     """
+    download_resources()
 
     jd_image = cv.imread(f"{base}jd.jpg", 1)
     jd_gray = cv.cvtColor(jd_image, cv.COLOR_BGR2GRAY)
