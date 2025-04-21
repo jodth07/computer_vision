@@ -7,14 +7,13 @@ import requests
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/main/resources/shutterstock-dog--250.jpg"
 
-
-if __name__ == '__main__':
+def main():
     """
-    Import this image_colored into OpenCV and 
+    Import this image_colored into OpenCV and
     extract each of these channels separately to
-    create 2D images. 
+    create 2D images.
     merge all these images back into a colored 3D image_colored.
-    exchange the reds with the greens? 
+    exchange the reds with the greens?
     swapping out the blue channel with the red channel (GRB).
     """
     response = requests.get(DEFAULT_IMAGE_URL)
@@ -64,3 +63,6 @@ if __name__ == '__main__':
     cv.waitKey(0)
 
     cv.destroyAllWindows()
+
+if __name__ == '__main__':
+    main()
