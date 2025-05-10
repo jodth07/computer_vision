@@ -5,6 +5,7 @@ import requests
 from requests import Response
 from typing import Optional
 
+
 class ImageProcessor:
 
     def __init__(self):
@@ -38,7 +39,7 @@ class ImageProcessor:
         if not os.path.exists(filename):
             print(f"Downloading {filename}...")
             response: Response = requests.get(ufl)
-            with open(filename, 'wb') as file:
+            with open(filename, "wb") as file:
                 file.write(response.content)
             print(f"Downloaded {filename}.")
         else:
@@ -46,7 +47,7 @@ class ImageProcessor:
         self.resources.add(filename)
         return filename
 
-    def load_image_from_file(self, file_path: str) -> 'ImageProcessor':
+    def load_image_from_file(self, file_path: str) -> "ImageProcessor":
         """
         Load an image from a file path.
         """
@@ -61,7 +62,7 @@ class ImageProcessor:
         self.height, self.width, self.channels = image.shape
         return self
 
-    def resize_image(self, value: float) -> 'ImageProcessor':
+    def resize_image(self, value: float) -> "ImageProcessor":
         """
         Resize the image to half or double its size.
         """
@@ -75,7 +76,9 @@ class ImageProcessor:
         print(f"Resized image to {new_size}")
         return self
 
-    def show_image(self, window_name: str = "Image", input_image: Optional[np.ndarray] = None) -> 'ImageProcessor':
+    def show_image(
+        self, window_name: str = "Image", input_image: Optional[np.ndarray] = None
+    ) -> "ImageProcessor":
         """
         Display the loaded image in a window.
         """
@@ -115,14 +118,16 @@ def apply_filters(image, kernel_size: tuple[int, int]):
         "mean_filter": mean_filter,
         "median_filter": median_filter,
         "gaussian_filter_1": gaussian_filter_1,
-        "gaussian_filter_2": gaussian_filter_2
+        "gaussian_filter_2": gaussian_filter_2,
     }
+
 
 def get_height(height, pos):
     n_height = int(height / 4)
-    base = (height * (pos -1)) + n_height
+    base = (height * (pos - 1)) + n_height
     end = height * pos + n_height
     return base, end
+
 
 def get_width(width, pos):
     n_width = int(width / 4)
@@ -130,13 +135,27 @@ def get_width(width, pos):
     end = width * (pos + 1) + n_width
     return base, end
 
-def process_and_draw_filters(canvas, image, height, width, kernel_size, row_pos, font, font_scale, color, thickness):
+
+def process_and_draw_filters(
+    canvas,
+    image,
+    height,
+    width,
+    kernel_size,
+    row_pos,
+    font,
+    font_scale,
+    color,
+    thickness,
+):
     """
     Apply filters, draw them on the canvas, and add labels for a specific kernel size and row position.
     """
     base_h, end_h = get_height(height, row_pos)
     filtered_images = apply_filters(image, kernel_size)
-    cv.putText(canvas, f"{kernel_size}", (10, base_h + 80), font, font_scale, color, thickness)
+    cv.putText(
+        canvas, f"{kernel_size}", (10, base_h + 80), font, font_scale, color, thickness
+    )
     for idx, (name, filtered_image) in enumerate(filtered_images.items()):
         base_w, end_w = get_width(width, idx)
         canvas[base_h:end_h, base_w:end_w] = filtered_image
@@ -163,13 +182,26 @@ def main():
     filtered_images = apply_filters(image, kernel_size)
     for idx, (name, filtered_image) in enumerate(filtered_images.items()):
         base_w, end_w = get_width(width, idx)
-        cv.putText(canvas, name, (base_w + 10, base_h - 5), font, font_scale, color, thickness)
+        cv.putText(
+            canvas, name, (base_w + 10, base_h - 5), font, font_scale, color, thickness
+        )
 
     for idx, kernel_size in enumerate([(3, 3), (5, 5), (7, 7)]):
-        process_and_draw_filters(canvas, image, height, width, kernel_size, idx + 1, font, font_scale, color, thickness)
+        process_and_draw_filters(
+            canvas,
+            image,
+            height,
+            width,
+            kernel_size,
+            idx + 1,
+            font,
+            font_scale,
+            color,
+            thickness,
+        )
 
     image_processor.show_image(window_name="Filtered Image", input_image=canvas)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

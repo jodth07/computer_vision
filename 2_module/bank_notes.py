@@ -4,8 +4,8 @@ import numpy as np
 import cv2
 import numpy as np
 
-def apply_gabor_filter(gray, kernel_size=31):
-    g_kernel = cv2.getGaborKernel((kernel_size, kernel_size), 8.0, np.pi / 2, 10.0, 0.5, 0, ktype=cv2.CV_32F)
+def apply_gabor_filter(gray, kernel_size=31, sigma=8.0, theta=np.pi/4, lambd_=10.0, gamma=0.5):
+    g_kernel = cv2.getGaborKernel((kernel_size, kernel_size), sigma, theta, lambd_, gamma, 0, ktype=cv2.CV_32F)
     return cv2.filter2D(gray, cv2.CV_8UC3, g_kernel)
 
 def apply_adaptive_threshold(gray):
