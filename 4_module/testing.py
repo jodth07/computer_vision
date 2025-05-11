@@ -1,15 +1,10 @@
-import sys
 from typing import Optional
 
-import cv2 as cv
-import requests
-import os
 import numpy as np
+import requests
+import cv2 as cv
 
-
-DEFAULT_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop/resources/shutterstock130285649--250.jpg"
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-# image_url = "https://csuglobal.instructure.com/courses/109078/files/8037617?wrap=1"
+BASE_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop/resources/"
 
 class ImageProcessor:
 
@@ -41,17 +36,20 @@ class ImageProcessor:
         print(f"Image loaded from {file_path}")
         return self
 
-    def show_image(self, window_name: str = "Image"):
+    def show_image(
+        self, window_name: str = "Image", input_image: Optional[np.ndarray] = None
+    ) -> "ImageProcessor":
         """
         Display the loaded image in a window.
         """
         print(f"Previewing Image in {window_name}")
 
-        if self.image is None:
+        image = input_image if input_image is not None else self.image
+        if image is None:
             raise ValueError("No image loaded.")
         print(f"Press `q` to continue")
 
-        cv.imshow(window_name, self.image)
+        cv.imshow(window_name, image)
         cv.waitKey(0)
         cv.destroyAllWindows()
         return self
@@ -66,32 +64,34 @@ class ImageProcessor:
         print(f"Image saved to {file_path}")
         return self
 
-def main(input_file_path: Optional[str] = None):
+
+if __name__ == '__main__':
+    image_file_name = "Mod4CT1.jpg"
+    image_path = f"{BASE_IMAGE_URL}{image_file_name}"
     image_processor = ImageProcessor()
-    """
-    import the following from ufl.
-    display the image.
-    rite a copy of the image to any directory
-    """
-    url_path = input_file_path or DEFAULT_IMAGE_URL
-    loaded_image = image_processor.load_image_from_url(url_path)
+    image_processor.load_image_from_url(image_path)
+    image_processor.save_image_to_file(image_file_name)
+    # image_processor.show_image()
 
-    file_name = url_path.split("/")[-1]
-    path_split = file_name.split(".")
-    new_image_write = ".".join(path_split[:-1]) + "_copy." + path_split[-1]
+    image = image_processor.image
+    print(f"image shape: {image.shape}")
 
-    loaded_image.show_image()
-    loaded_image.save_image_to_file(new_image_write)
+    # Add labels above each filtered image
+    font = cv.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.5
+    color = (3, 3, 3)  # White text
+    thickness = 1
+
+    height, width, channels = image.shape
+    canvas = np.ones((height * 3 + 50, width * 4 + 70, channels), dtype=np.uint8) * 255
+    height, width, channels = image.shape
+
+    base_h, base_w = height, width
+    new_h, new_w = base_h + height, base_w + width
+    # canvas[:height, :width] = image
+
+    median_blur = cv.medianBlur(canvas, 3)
+    canvas[:height, :width] = median_blur
 
 
-def get_arguments() -> Optional[str]:
-    args = sys.argv[1:]
-    if len(args) > 0:
-        return args[0]
-    else:
-        print("No Argument passed in, downloading default image from URL")
-        return None
-
-if __name__ == "__main__":
-    file_url = get_arguments()
-    main(file_url)
+    image_processor.show_image(window_name="Filtered Image", input_image=canvas)
