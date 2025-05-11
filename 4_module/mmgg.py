@@ -5,6 +5,7 @@ import requests
 from requests import Response
 from typing import Optional
 
+BASE_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop/resources/"
 
 class ImageProcessor:
 
@@ -113,7 +114,7 @@ def apply_filters(image, kernel_size: tuple[int, int]):
     mean_filter = cv.blur(image, kernel_size)
     median_filter = cv.medianBlur(image, kernel_size[0])
     gaussian_filter_1 = cv.GaussianBlur(image, ksize=kernel_size, sigmaX=0.2)
-    gaussian_filter_2 = cv.GaussianBlur(image, ksize=kernel_size, sigmaX=20.5)
+    gaussian_filter_2 = cv.GaussianBlur(image, ksize=kernel_size, sigmaX=2.0)
     return {
         "mean_filter": mean_filter,
         "median_filter": median_filter,
@@ -162,11 +163,14 @@ def process_and_draw_filters(
 
 
 def main():
+    image_file_name = "Mod4CT1.jpg"
+    image_path = f"{BASE_IMAGE_URL}{image_file_name}"
     image_processor = ImageProcessor()
-    image = image_processor.load_image_from_file("../resources/Mod4CT1.jpg")
+    image_processor.load_image_from_url(image_path)
+    image_processor.save_image_to_file(image_file_name)
 
-    print(f"image shape: {image.image.shape}")
-    image = image.image.copy()
+    image = image_processor.image
+    print(f"image shape: {image.shape}")
 
     # Add labels above each filtered image
     font = cv.FONT_HERSHEY_SIMPLEX
