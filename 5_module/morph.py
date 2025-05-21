@@ -3,13 +3,18 @@ Acquire an gray_scaled of a latent fingerprint. In OpenCV,
 write algorithms to process the gray_scaled using morphological operations 
 (dilation, erosion, opening, and closing).
 """
+from os import environ
 
 import cv2 as cv
 import requests
 import numpy as np
+from dotenv import load_dotenv
 from matplotlib import pyplot as plt
 
-BASE_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop/resources/"
+load_dotenv()
+IS_DEV = environ.get("IS_DEV", "False").lower() == "true"
+
+BASE_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop"
 
 class ImageProcessor:
 
@@ -87,7 +92,7 @@ def morphological_operations(image_path):
 
     # Display the results
     titles = ['Original Image', 'Thresholded Image', 'Dilation', 'Erosion', 'Opening', 'Closing']
-    images = [gray_scaled, thresh, dilation, erosion, opening, closing]
+    images = [image, thresh, dilation, erosion, opening, closing]
 
     plt.figure(figsize=(10, 6))
     for i in range(6):
@@ -100,12 +105,19 @@ def morphological_operations(image_path):
     plt.show()
 
 if __name__ == '__main__':
-    image_file_name = "fingerprint1.png"
-    image_path =  f"https://raw.githubusercontent.com/jodth07/computer_vision/develop/resources/{image_file_name}"
+    print(IS_DEV)
+    image_file_name = "handwriting2.jpg"
     image_processor = ImageProcessor()
-    image_processor.load_image_from_url(image_path)
+
+    if IS_DEV:
+        base_path = ".."
+        image_path = f"{base_path}/resources/{image_file_name}"
+        image_processor.load_image_from_file(image_path)
+    else:
+        base_path = BASE_IMAGE_URL
+        image_path =  f"{base_path}/resources/{image_file_name}"
+        image_processor.load_image_from_url(image_path)
+
     image_processor.save_image_to_file(image_file_name)
     image_processor.show_image()
     morphological_operations(image_file_name)
-
-    # morphological_operations(image_path)
