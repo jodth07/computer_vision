@@ -105,7 +105,6 @@ if __name__ == '__main__':
     image_processor = ImageProcessor()
     image_processor.load_image_from_url(image_path)
     image_processor.save_image_to_file(image_file_name)
-    image_processor.show_image()
     morphological_operations(image_file_name)
 
     # morphological_operations(image_path)
