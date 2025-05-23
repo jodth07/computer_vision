@@ -6,7 +6,8 @@ import numpy as np
 import requests
 from matplotlib import pyplot as plt
 from dotenv import load_dotenv
-# load_dotenv()
+
+load_dotenv()
 IS_DEV = environ.get("IS_DEV", "False").lower() == "true"
 BASE_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop"
 
@@ -66,19 +67,12 @@ class ImageProcessor:
         return self
 
 
-"""
-Implement an adaptive thresholding scheme to segment the images as best as you can.
-"""
-def segmenting_thresholding(image):
-
-    # # Apply Gaussian adaptive thresholding
-    thresholded_image = cv.adaptiveThreshold(image, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                             cv.THRESH_BINARY, 115, 1)
-    # thresholded_image = cv.adaptiveThreshold(image, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-    #                                          cv.THRESH_BINARY, 15, 5)
-    return thresholded_image
-
-
+def segmenting_thresholding(image, ksize=5):
+    # Apply Gaussian blur to reduce noise
+    image = cv.GaussianBlur(image, (5, 5), 0)
+    threshold_image = cv.adaptiveThreshold(image, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                             cv.THRESH_BINARY, ksize, 2)
+    return threshold_image
 
 
 if __name__ == '__main__':
@@ -91,19 +85,16 @@ if __name__ == '__main__':
 
     # download images
     if not IS_DEV:
-        os.makedirs("../resources", exist_ok=True)
         base_image_path = f"{BASE_IMAGE_URL}/resources"
         for image_file_name in images:
             image_processor.load_image_from_url(f"{base_image_path}/{image_file_name}")
             image_processor.save_image_to_file(image_file_name)
 
-    base_image_path = "../resources/"
+    base_image_path = "."
 
-    """Find on the internet (or use a camera to take) three different types of images:
-    an indoor scene, outdoor scenery, and a close-up scene of a single object."""
-    indoor_img = cv.imread(f"{base_image_path}/6_indoor_scene.png", 0)
-    outdoor_img = cv.imread(f"{base_image_path}/6_outdoor_scene.png", 0)
-    closeup_img = cv.imread(f"{base_image_path}/6_closeup_mg.png", 0)
+    indoor_img = cv.imread(f"{base_image_path}/6_indoor_scene.png", cv.IMREAD_GRAYSCALE)
+    outdoor_img = cv.imread(f"{base_image_path}/6_outdoor_scene.png", cv.IMREAD_GRAYSCALE)
+    closeup_img = cv.imread(f"{base_image_path}/6_closeup_mg.png", cv.IMREAD_GRAYSCALE)
 
 
     threshold_indoor = segmenting_thresholding(indoor_img)
@@ -114,7 +105,7 @@ if __name__ == '__main__':
     titles = ['Indoor', 'Outdoor', 'Close Up']
     images = [threshold_indoor, threshold_outdoor, threshold_close]
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(20, 6))
     for i in range(3):
         plt.subplot(1, 3, i + 1)
         plt.imshow(images[i], cmap='gray')
