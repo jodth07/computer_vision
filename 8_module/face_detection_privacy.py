@@ -9,11 +9,14 @@ After the faces have been successfully detected, you will want to process only t
 
 Inspect your results and write a summary describing the techniques you used to detect and blur the eyes out of human faces in images. Reflect on the challenges you faced and how you overcame these challenges.  Furthermore, discuss in your summary, the accuracy of your results for all three images and techniques you used to improve the accuracy after each repeated experiment.
 """
+from typing import Optional
 
 import cv2 as cv
 import os
 import numpy as np
 import requests
+
+BASE_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop"
 
 class ImageProcessor:
 
@@ -62,17 +65,20 @@ class ImageProcessor:
         print(f"Image loaded from {file_path}")
         return self
 
-    def show_image(self, window_name: str = "Image"):
+    def show_image(
+            self, window_name: str = "Image", input_image: Optional[np.ndarray] = None
+    ) -> "ImageProcessor":
         """
         Display the loaded image in a window.
         """
         print(f"Previewing Image in {window_name}")
 
-        if self.image is None:
+        image = input_image if input_image is not None else self.image
+        if image is None:
             raise ValueError("No image loaded.")
         print(f"Press `q` to continue")
 
-        cv.imshow(window_name, self.image)
+        cv.imshow(window_name, image)
         cv.waitKey(0)
         cv.destroyAllWindows()
         return self
@@ -97,9 +103,9 @@ def detect_faces_and_eyes():
     """
 
     resources = [
-        "https://raw.githubusercontent.com/jodth07/computer_vision/main/resources/jd.jpg",
-        "https://raw.githubusercontent.com/jodth07/computer_vision/main/resources/haarcascade_frontalface_default.xml",
-        "https://raw.githubusercontent.com/jodth07/computer_vision/main/resources/haarcascade_eye.xml"
+        "{BASE_IMAGE_URL}/resources/jd.jpg",
+        "{BASE_IMAGE_URL}/resources/haarcascade_frontalface_default.xml",
+        "{BASE_IMAGE_URL}/resources/haarcascade_eye.xml"
     ]
 
     image_processor = ImageProcessor()
@@ -132,5 +138,72 @@ def detect_faces_and_eyes():
     cv.waitKey(0)
     cv.destroyAllWindows()
 
+def detect_face(input_image, cascade_path):
+    """
+    detect the human faces in the gray scaled versions of the original images
+    """
+
+    gray_img = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
+    face_cascade = cv.CascadeClassifier(cascade_path)
+    faces = face_cascade.detectMultiScale(gray_img, 1.50, 12, minSize=(60,60))
+    
+    print(len(faces))
+    # print(len(faces[0]))
+
+    if len(faces) > 0:
+        for (x, y, w, h) in faces:
+            cv.rectangle(input_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+    return input_image
+
+
+def detect_eyes(input_image, cascade_path):
+    """
+    detect the human eyes in the gray scaled versions of the original images
+    """
+
+    gray_img = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
+    eyes_cascade = cv.CascadeClassifier(cascade_path)
+    eyes = eyes_cascade.detectMultiScale(gray_img, 1.25, 6, minSize=(30, 30))
+
+    print(len(eyes))
+    # print(len(eyes[0]))
+
+    # for (x, y, w, h) in eyes:
+    #     cv.rectangle(input_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+    if len(eyes) > 0:
+        for (x, y, w, h) in eyes:
+            center = (int(x + w / 2), int(y + h / 2))
+            radius = int(round((w + h) / 4) * 1)
+            cv.circle(input_image, center, radius, (0, 255, 0), 1)
+
+    return input_image
+
+
 if __name__ == '__main__':
-    detect_faces_and_eyes()
+    resources = [
+        f"{BASE_IMAGE_URL}/resources/haarcascade_frontalface_default.xml",
+        f"{BASE_IMAGE_URL}/resources/haarcascade_eye.xml",
+        f"{BASE_IMAGE_URL}/resources/8_123_jdtea.studio.jpg",
+        f"{BASE_IMAGE_URL}/resources/8_1.jpg",
+    ]
+
+    image_processor = ImageProcessor()
+    fc_path = image_processor.download_resource(resources[0])
+    eye_path = image_processor.download_resource(resources[1])
+
+    # image_processor.load_image_from_url(resources[2])
+    image_processor.load_image_from_url(resources[3])
+    image_processor.show_image(window_name="Original Image")
+
+    # image = image_processor.image
+    new_image = detect_face(image_processor.image, fc_path)
+    # image_processor.show_image(input_image=new_image)
+    image_processor.show_image(window_name="Original Image2")
+    # image_processor.show_image(window_name="Original Image")
+
+    with_eyes = detect_eyes(new_image, eye_path)
+    image_processor.show_image(input_image=with_eyes, window_name="Original Image3")
+
+    # detect_faces_and_eyes()
