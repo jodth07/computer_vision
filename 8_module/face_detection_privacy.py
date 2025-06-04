@@ -1,20 +1,8 @@
-"""
-First, using the appropriate trained cascade classifier,
-    write one algorithm to detect the human faces in the gray scaled versions of the original images.
-        Put a red boundary box around the detected face in the image in order to see what region the classifier deemed as a human face.
-        If expected results are not achieved on the unprocessed images,
-        apply processing steps before implementing the classifier for optimal results.
-
-After the faces have been successfully detected, you will want to process only the extracted faces before detecting and applying blurring to hide the eyes. Although the eye classifierLinks to an external site. is fairly accurate, it is important that all faces are centered, rotated, and scaled so that the eyes are perfectly aligned. If expected results are not achieved, implement more image processing for optimal eye recognition. Now, apply a blurring method to blur the eyes out in the extracted image.
-
-Inspect your results and write a summary describing the techniques you used to detect and blur the eyes out of human faces in images. Reflect on the challenges you faced and how you overcame these challenges.  Furthermore, discuss in your summary, the accuracy of your results for all three images and techniques you used to improve the accuracy after each repeated experiment.
-"""
-from typing import Optional
-
 import cv2 as cv
 import os
 import numpy as np
 import requests
+from typing import Optional
 
 BASE_IMAGE_URL = "https://raw.githubusercontent.com/jodth07/computer_vision/develop"
 
@@ -93,99 +81,152 @@ class ImageProcessor:
         print(f"Image saved to {file_path}")
         return self
 
-def detect_faces_and_eyes():
-    """
-    take a picture of yourself facing the frontal.
-    draw on the image
-        a red bounding box for your eyes and
-        a green circle around your face.
-    tag the image with the text “this is me”.
-    """
+    def detect_faces(self, cascade_path, input_image: Optional[np.ndarray] = None):
+        """
+        detect the human faces in the gray scaled versions of the original images
+        """
+        process_image = input_image if input_image is not None else self.image
+        gray_img = cv.cvtColor(process_image, cv.COLOR_BGR2GRAY)
+        face_cascade = cv.CascadeClassifier(cascade_path)
+        faces = face_cascade.detectMultiScale(gray_img, 1.20, 16, minSize=(80,80))
 
-    resources = [
-        "{BASE_IMAGE_URL}/resources/jd.jpg",
-        "{BASE_IMAGE_URL}/resources/haarcascade_frontalface_default.xml",
-        "{BASE_IMAGE_URL}/resources/haarcascade_eye.xml"
-    ]
+        if len(faces) > 0:
+            for (x, y, w, h) in faces:
+                cv.rectangle(process_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-    image_processor = ImageProcessor()
-    image_processor.load_image_from_url(resources[0])
-    image_processor.show_image(window_name="Original Image")
+        return process_image
 
-    jd_image = image_processor.image
-    jd_gray = cv.cvtColor(jd_image, cv.COLOR_BGR2GRAY)
+    @staticmethod
+    def extract_faces(input_image: np.ndarray, face_cascade_path: str) -> list:
+        """
+        Extract faces from the input image using a Haar Cascade classifier.
+        """
+        gray_img = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
+        face_cascade = cv.CascadeClassifier(face_cascade_path)
+        faces = face_cascade.detectMultiScale(gray_img, 1.20, 16, minSize=(80, 80))
 
-    face_cascade_path = image_processor.download_resource(resources[1])
-    eyes_cascade_path = image_processor.download_resource(resources[2])
-
-    face_cascade = cv.CascadeClassifier(face_cascade_path)
-    faces = face_cascade.detectMultiScale(jd_gray, 1.10, 5, minSize=(60,60))
-    print(len(faces))
-    print(len(faces[0]))
-
-    for (x, y, w, h) in faces:
-        center = (int(x + w / 2), int(y + h / 2))
-        radius = int(round((w + h) / 4) * 1.3)
-        cv.circle(jd_image, center, radius, (0, 255, 0), 3)
-
-    eyes_cascade = cv.CascadeClassifier(eyes_cascade_path)
-    eyes = eyes_cascade.detectMultiScale(jd_gray, 1.10, 5, minSize=(40, 40))
-
-    for (x, y, w, h) in eyes:
-        cv.rectangle(jd_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
-    cv.imshow("this is me", jd_image)
-    cv.waitKey(0)
-    cv.destroyAllWindows()
-
-def detect_face(input_image, cascade_path):
-    """
-    detect the human faces in the gray scaled versions of the original images
-    """
-
-    gray_img = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
-    face_cascade = cv.CascadeClassifier(cascade_path)
-    faces = face_cascade.detectMultiScale(gray_img, 1.50, 12, minSize=(60,60))
-    
-    print(len(faces))
-    # print(len(faces[0]))
-
-    if len(faces) > 0:
+        extracted_faces = []
         for (x, y, w, h) in faces:
-            cv.rectangle(input_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            face_region = input_image[y:y + h, x:x + w]
+            extracted_faces.append(face_region)
 
-    return input_image
+        return extracted_faces
 
+    @staticmethod
+    def align_faces(faces: list) -> list:
+        """
+        Align faces to ensure they are centered and scaled properly.
+        This is a placeholder function; actual implementation may vary based on requirements.
+        """
+        aligned_faces = []
+        for face in faces:
+            # Placeholder for alignment logic
+            # For now, we just append the original face
+            aligned_faces.append(face)
+        return aligned_faces
 
-def detect_eyes(input_image, cascade_path):
-    """
-    detect the human eyes in the gray scaled versions of the original images
-    """
+    @staticmethod
+    def detect_eyes(input_image, cascade_path):
+        """
+        detect the human eyes in the gray scaled versions of the original images
+        """
 
-    gray_img = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
-    eyes_cascade = cv.CascadeClassifier(cascade_path)
-    eyes = eyes_cascade.detectMultiScale(gray_img, 1.25, 6, minSize=(30, 30))
+        gray_img = cv.cvtColor(input_image, cv.COLOR_BGR2GRAY)
+        eyes_cascade = cv.CascadeClassifier(cascade_path)
+        eyes = eyes_cascade.detectMultiScale(gray_img, 1.06, 26, minSize=(20, 20))
 
-    print(len(eyes))
-    # print(len(eyes[0]))
+        print(len(eyes))
 
-    # for (x, y, w, h) in eyes:
-    #     cv.rectangle(input_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        if len(eyes) > 0:
+            for (x, y, w, h) in eyes:
+                center = (int(x + w / 2), int(y + h / 2))
+                radius = int(round((w + h) / 4) * 1)
+                cv.circle(input_image, center, radius, (0, 255, 0), 3)
 
-    if len(eyes) > 0:
+        return input_image
+
+    @staticmethod
+    def align_face_by_eyes(face_img: np.ndarray, eye_cascade_path: str) -> Optional[np.ndarray]:
+        """
+        Align a face image so the eyes are horizontal.
+        """
+        gray = cv.cvtColor(face_img, cv.COLOR_BGR2GRAY)
+        eye_cascade = cv.CascadeClassifier(eye_cascade_path)
+        eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=10, minSize=(20, 20))
+
+        if len(eyes) < 2:
+            print("Less than 2 eyes detected; skipping alignment.")
+            return None
+
+        # Sort eyes by x-coordinate
+        eyes = sorted(eyes, key=lambda x: x[0])
+        eye_1, eye_2 = eyes[:2]
+
+        (x1, y1, w1, h1) = eye_1
+        (x2, y2, w2, h2) = eye_2
+
+        eye_center_1 = (x1 + w1 // 2, y1 + h1 // 2)
+        eye_center_2 = (x2 + w2 // 2, y2 + h2 // 2)
+
+        dx = eye_center_2[0] - eye_center_1[0]
+        dy = eye_center_2[1] - eye_center_1[1]
+        angle = np.degrees(np.arctan2(dy, dx))
+
+        # ✅ Fix here: cast to float
+        eye_center = (
+            float((eye_center_1[0] + eye_center_2[0]) / 2),
+            float((eye_center_1[1] + eye_center_2[1]) / 2)
+        )
+        rot_mat = cv.getRotationMatrix2D(eye_center, angle, scale=1.0)
+        aligned_face = cv.warpAffine(face_img, rot_mat, (face_img.shape[1], face_img.shape[0]), flags=cv.INTER_LINEAR)
+
+        return aligned_face
+
+    @staticmethod
+    def resize_face(face_img: np.ndarray, size: tuple = (224, 224)) -> np.ndarray:
+        """
+        Resize a face image to a standard size.
+        """
+        resized = cv.resize(face_img, size, interpolation=cv.INTER_AREA)
+        return resized
+
+    @staticmethod
+    def blur_eyes(face_img: np.ndarray, eye_cascade_path: str) -> np.ndarray:
+        """
+        Detect and blur eyes in a face image.
+        """
+        gray = cv.cvtColor(face_img, cv.COLOR_BGR2GRAY)
+        eye_cascade = cv.CascadeClassifier(eye_cascade_path)
+        eyes = eye_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=10, minSize=(20, 20))
+
         for (x, y, w, h) in eyes:
-            center = (int(x + w / 2), int(y + h / 2))
-            radius = int(round((w + h) / 4) * 1)
-            cv.circle(input_image, center, radius, (0, 255, 0), 1)
+            eye_roi = face_img[y:y+h, x:x+w]
+            blurred_eye = cv.GaussianBlur(eye_roi, (31, 31), 0)
+            face_img[y:y+h, x:x+w] = blurred_eye
 
-    return input_image
+        return face_img
+
+    @staticmethod
+    def save_face_image(face_img: np.ndarray, output_dir: str, index: int) -> str:
+        """
+        Save a face image to a specified directory with an indexed filename.
+        """
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, f"face_{index}.jpg")
+        cv.imwrite(output_path, face_img)
+        print(f"Saved face to {output_path}")
+        return output_path
+
 
 
 if __name__ == '__main__':
+    tracker = 0
     resources = [
         f"{BASE_IMAGE_URL}/resources/haarcascade_frontalface_default.xml",
         f"{BASE_IMAGE_URL}/resources/haarcascade_eye.xml",
         f"{BASE_IMAGE_URL}/resources/8_123_jdtea.studio.jpg",
+        f"{BASE_IMAGE_URL}/resources/8_far_away_standing.jpg",
+        f"{BASE_IMAGE_URL}/resources/8_124_far_away.jpg",
         f"{BASE_IMAGE_URL}/resources/8_1.jpg",
     ]
 
@@ -193,17 +234,19 @@ if __name__ == '__main__':
     fc_path = image_processor.download_resource(resources[0])
     eye_path = image_processor.download_resource(resources[1])
 
-    # image_processor.load_image_from_url(resources[2])
-    image_processor.load_image_from_url(resources[3])
-    image_processor.show_image(window_name="Original Image")
+    images = resources[2:]
+    for image_resource in images:
+        image_processor.load_image_from_url(image_resource)
+        image_processor.show_image(window_name="Original Image")
 
-    # image = image_processor.image
-    new_image = detect_face(image_processor.image, fc_path)
-    # image_processor.show_image(input_image=new_image)
-    image_processor.show_image(window_name="Original Image2")
-    # image_processor.show_image(window_name="Original Image")
+        extracted_faces = image_processor.extract_faces(image_processor.image, fc_path)
 
-    with_eyes = detect_eyes(new_image, eye_path)
-    image_processor.show_image(input_image=with_eyes, window_name="Original Image3")
-
-    # detect_faces_and_eyes()
+        for idx, face in enumerate(extracted_faces):
+            # Step 2: Align face using detected eyes
+            aligned = image_processor.align_face_by_eyes(face, eye_path)
+            if aligned is not None:
+                resized = image_processor.resize_face(aligned)
+                blurred = image_processor.blur_eyes(resized, eye_path)
+                image_processor.save_face_image(blurred, output_dir="processed_faces", index=tracker)
+                image_processor.show_image(window_name=f"Aligned Face {tracker}", input_image=blurred)
+                tracker += 1
