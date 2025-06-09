@@ -193,7 +193,6 @@ if __name__ == '__main__':
 
         for idx, face in enumerate(extracted_faces):
             resized = image_processor.resize_face(face)
-            image_processor.show_image(window_name=f"jkj Face {tracker}", input_image=resized)
             aligned = image_processor.align_face_by_eyes(eye_path, input_image=resized)
             if aligned is not None:
                 blurred = image_processor.blur_eyes(eye_path, resized)
@@ -201,7 +200,7 @@ if __name__ == '__main__':
                 image_processor.show_image(window_name=f"Aligned Face {tracker}", input_image=blurred)
                 tracker += 1
 
-        # image_processor.show_image(window_name="Original Image")
+        image_processor.show_image(window_name="Original Image")
         image_processor.detect_faces(fc_path, draw_face=True, extract=False)
         image_processor.blur_eyes(eye_path)
         image_processor.show_image(window_name=f"Aligned Face new")
